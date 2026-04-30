@@ -138,3 +138,43 @@ extension GitDiffParserTests {
         )
     }
 }
+
+extension GitDiffParserTests {
+    private static let metadataDiff: [String] = [
+        "diff --git a/x.go b/x.go",          // row 0
+        "new file mode 100644",              // row 1
+        "index 0000000..1111111",            // row 2
+        "--- /dev/null",                     // row 3
+        "+++ b/x.go",                        // row 4
+        "@@ -0,0 +1,2 @@",                   // row 5
+        "+package main",                     // row 6
+    ]
+
+    func testClickOnDiffGitHeaderResolvesToLine1() {
+        XCTAssertEqual(
+            GitDiffJumpParser.resolve(lines: Self.metadataDiff, clickRow: 0),
+            .fileLine(relativePath: "x.go", line: 1)
+        )
+    }
+
+    func testClickOnNewFileModeResolvesToLine1() {
+        XCTAssertEqual(
+            GitDiffJumpParser.resolve(lines: Self.metadataDiff, clickRow: 1),
+            .fileLine(relativePath: "x.go", line: 1)
+        )
+    }
+
+    func testClickOnIndexLineResolvesToLine1() {
+        XCTAssertEqual(
+            GitDiffJumpParser.resolve(lines: Self.metadataDiff, clickRow: 2),
+            .fileLine(relativePath: "x.go", line: 1)
+        )
+    }
+
+    func testClickOnPlusPlusPlusHeaderResolvesToLine1() {
+        XCTAssertEqual(
+            GitDiffJumpParser.resolve(lines: Self.metadataDiff, clickRow: 4),
+            .fileLine(relativePath: "x.go", line: 1)
+        )
+    }
+}
