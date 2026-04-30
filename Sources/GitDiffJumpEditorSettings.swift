@@ -47,3 +47,40 @@ enum GitDiffJumpEditorSettings {
             .replacingOccurrences(of: "%line", with: String(line))
     }
 }
+
+extension GitDiffJumpEditorSettings {
+    /// Resolve a `git diff` relative path (e.g. `src/foo.go` from
+    /// `b/src/foo.go`) to an absolute path on disk.
+    ///
+    /// Strategy:
+    ///   1. Try `cwd/<relativePath>`. If it exists, return it.
+    ///   2. Walk up from `cwd` looking for an entry literally named `.git`
+    ///      (file OR directory). The first ancestor that contains one is
+    ///      treated as the repo root; try `<repoRoot>/<relativePath>`.
+    ///   3. Otherwise, return nil.
+    ///
+    /// File existence is checked via `FileManager.default.fileExists`.
+    /// All `stat` calls are bounded by the filesystem hierarchy depth and
+    /// are safe to run from a background thread.
+    static func resolveAbsolutePath(relativePath: String, cwd: String) -> String? {
+        let fm = FileManager.default
+        let direct = (cwd as NSString).appendingPathComponent(relativePath)
+        if fm.fileExists(atPath: direct) {
+            return direct
+        }
+
+        var current = cwd
+        let root = "/"
+        while current != root && !current.isEmpty {
+            let dotGit = (current as NSString).appendingPathComponent(".git")
+            if fm.fileExists(atPath: dotGit) {
+                let candidate = (current as NSString).appendingPathComponent(relativePath)
+                return fm.fileExists(atPath: candidate) ? candidate : nil
+            }
+            let parent = (current as NSString).deletingLastPathComponent
+            if parent == current { break }
+            current = parent
+        }
+        return nil
+    }
+}

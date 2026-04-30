@@ -67,3 +67,87 @@ final class GitDiffJumpEditorSettingsSubstitutionTests: XCTestCase {
         XCTAssertEqual(GitDiffJumpEditorSettings.presets.last?.name, "Nova")
     }
 }
+
+final class GitDiffJumpEditorSettingsResolveTests: XCTestCase {
+    private var tempRoot: URL!
+
+    override func setUpWithError() throws {
+        tempRoot = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("cmux-git-diff-jump-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(
+            at: tempRoot, withIntermediateDirectories: true
+        )
+    }
+
+    override func tearDownWithError() throws {
+        try? FileManager.default.removeItem(at: tempRoot)
+    }
+
+    func testCwdRelativePathResolvesWhenFileExists() throws {
+        let target = tempRoot.appendingPathComponent("src/foo.go")
+        try FileManager.default.createDirectory(
+            at: target.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        FileManager.default.createFile(atPath: target.path, contents: Data())
+
+        let resolved = GitDiffJumpEditorSettings.resolveAbsolutePath(
+            relativePath: "src/foo.go",
+            cwd: tempRoot.path
+        )
+        XCTAssertEqual(resolved, target.path)
+    }
+
+    func testWalkUpFindsRepoRootViaDotGit() throws {
+        // Layout:
+        //   tempRoot/.git
+        //   tempRoot/src/foo.go
+        //   tempRoot/src/sub/   (cwd)
+        let dotGit = tempRoot.appendingPathComponent(".git")
+        try FileManager.default.createDirectory(at: dotGit, withIntermediateDirectories: true)
+
+        let target = tempRoot.appendingPathComponent("src/foo.go")
+        try FileManager.default.createDirectory(
+            at: target.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        FileManager.default.createFile(atPath: target.path, contents: Data())
+
+        let cwd = tempRoot.appendingPathComponent("src/sub")
+        try FileManager.default.createDirectory(at: cwd, withIntermediateDirectories: true)
+
+        let resolved = GitDiffJumpEditorSettings.resolveAbsolutePath(
+            relativePath: "src/foo.go",
+            cwd: cwd.path
+        )
+        XCTAssertEqual(resolved, target.path)
+    }
+
+    func testReturnsNilWhenFileDoesNotExistEvenWithGitRoot() throws {
+        let dotGit = tempRoot.appendingPathComponent(".git")
+        try FileManager.default.createDirectory(at: dotGit, withIntermediateDirectories: true)
+        XCTAssertNil(
+            GitDiffJumpEditorSettings.resolveAbsolutePath(
+                relativePath: "does/not/exist.go",
+                cwd: tempRoot.path
+            )
+        )
+    }
+
+    func testGitFileNotJustDirectoryCountsAsRepoRoot() throws {
+        // `.git` can be a file (worktree pointer) instead of a directory.
+        let dotGit = tempRoot.appendingPathComponent(".git")
+        try "gitdir: /elsewhere\n".write(to: dotGit, atomically: true, encoding: .utf8)
+
+        let target = tempRoot.appendingPathComponent("src/foo.go")
+        try FileManager.default.createDirectory(
+            at: target.deletingLastPathComponent(), withIntermediateDirectories: true
+        )
+        FileManager.default.createFile(atPath: target.path, contents: Data())
+
+        let cwd = tempRoot.appendingPathComponent("src")
+        let resolved = GitDiffJumpEditorSettings.resolveAbsolutePath(
+            relativePath: "src/foo.go",
+            cwd: cwd.path
+        )
+        XCTAssertEqual(resolved, target.path)
+    }
+}
