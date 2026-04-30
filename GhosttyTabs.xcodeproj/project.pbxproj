@@ -106,6 +106,7 @@
 		A5001532 /* TerminalWindowPortal.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5001531 /* TerminalWindowPortal.swift */; };
 		A5001534 /* BrowserWindowPortal.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5001533 /* BrowserWindowPortal.swift */; };
 		9E7AF624D4CC7EE30F1A7EB2 /* GitDiffParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5F659071B5C782E8346304 /* GitDiffParser.swift */; };
+		9ABFD5C545881AA40400AE12 /* GitDiffJumpEditorSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FD186E53B467CA36E81BDE9 /* GitDiffJumpEditorSettings.swift */; };
 		A5001540 /* PortScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5001541 /* PortScanner.swift */; };
 		A5001542 /* TerminalImageTransfer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5001544 /* TerminalImageTransfer.swift */; };
 		A5001543 /* TerminalSSHSessionDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5001545 /* TerminalSSHSessionDetector.swift */; };
@@ -185,6 +186,7 @@
 		F3000000A1B2C3D4E5F60718 /* CJKIMEInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3000001A1B2C3D4E5F60718 /* CJKIMEInputTests.swift */; };
 		F4000000A1B2C3D4E5F60718 /* GhosttyConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4000001A1B2C3D4E5F60718 /* GhosttyConfigTests.swift */; };
 		7F1D75B569A82A8A2EF81E7E /* GitDiffParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3099838BFE64471E7E78FA5B /* GitDiffParserTests.swift */; };
+		79AADF3A01857593C9BDAF9D /* GitDiffJumpEditorSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A177096D0D2F6130A7755240 /* GitDiffJumpEditorSettingsTests.swift */; };
 		F4100000A1B2C3D4E5F60718 /* PortScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4100001A1B2C3D4E5F60718 /* PortScannerTests.swift */; };
 		F5000000A1B2C3D4E5F60718 /* SessionPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5000001A1B2C3D4E5F60718 /* SessionPersistenceTests.swift */; };
 		F6000000A1B2C3D4E5F60718 /* AppDelegateShortcutRoutingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6000001A1B2C3D4E5F60718 /* AppDelegateShortcutRoutingTests.swift */; };
@@ -379,6 +381,7 @@
 		A5001531 /* TerminalWindowPortal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalWindowPortal.swift; sourceTree = "<group>"; };
 		A5001533 /* BrowserWindowPortal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserWindowPortal.swift; sourceTree = "<group>"; };
 		EA5F659071B5C782E8346304 /* GitDiffParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitDiffParser.swift; sourceTree = "<group>"; };
+		5FD186E53B467CA36E81BDE9 /* GitDiffJumpEditorSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitDiffJumpEditorSettings.swift; sourceTree = "<group>"; };
 		A5001541 /* PortScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortScanner.swift; sourceTree = "<group>"; };
 		A5001544 /* TerminalImageTransfer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalImageTransfer.swift; sourceTree = "<group>"; };
 		A5001545 /* TerminalSSHSessionDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalSSHSessionDetector.swift; sourceTree = "<group>"; };
@@ -447,6 +450,7 @@
 		F3000001A1B2C3D4E5F60718 /* CJKIMEInputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CJKIMEInputTests.swift; sourceTree = "<group>"; };
 		F4000001A1B2C3D4E5F60718 /* GhosttyConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhosttyConfigTests.swift; sourceTree = "<group>"; };
 		3099838BFE64471E7E78FA5B /* GitDiffParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitDiffParserTests.swift; sourceTree = "<group>"; };
+		A177096D0D2F6130A7755240 /* GitDiffJumpEditorSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitDiffJumpEditorSettingsTests.swift; sourceTree = "<group>"; };
 		F4100001A1B2C3D4E5F60718 /* PortScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortScannerTests.swift; sourceTree = "<group>"; };
 		F5000001A1B2C3D4E5F60718 /* SessionPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionPersistenceTests.swift; sourceTree = "<group>"; };
 		F6000001A1B2C3D4E5F60718 /* AppDelegateShortcutRoutingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegateShortcutRoutingTests.swift; sourceTree = "<group>"; };
@@ -656,6 +660,7 @@
 				A5001533 /* BrowserWindowPortal.swift */,
 				A5001019 /* TerminalController.swift */,
 				EA5F659071B5C782E8346304 /* GitDiffParser.swift */,
+				5FD186E53B467CA36E81BDE9 /* GitDiffJumpEditorSettings.swift */,
 				A5001541 /* PortScanner.swift */,
 				A5001544 /* TerminalImageTransfer.swift */,
 				A5001545 /* TerminalSSHSessionDetector.swift */,
@@ -750,6 +755,7 @@
 				F3000001A1B2C3D4E5F60718 /* CJKIMEInputTests.swift */,
 				F4000001A1B2C3D4E5F60718 /* GhosttyConfigTests.swift */,
 				3099838BFE64471E7E78FA5B /* GitDiffParserTests.swift */,
+				A177096D0D2F6130A7755240 /* GitDiffJumpEditorSettingsTests.swift */,
 				F4100001A1B2C3D4E5F60718 /* PortScannerTests.swift */,
 				F5000001A1B2C3D4E5F60718 /* SessionPersistenceTests.swift */,
 				FA100001A1B2C3D4E5F60718 /* BrowserImportMappingTests.swift */,
@@ -1061,6 +1067,7 @@
 				A5001534 /* BrowserWindowPortal.swift in Sources */,
 				A5001007 /* TerminalController.swift in Sources */,
 				9E7AF624D4CC7EE30F1A7EB2 /* GitDiffParser.swift in Sources */,
+				9ABFD5C545881AA40400AE12 /* GitDiffJumpEditorSettings.swift in Sources */,
 				A5001540 /* PortScanner.swift in Sources */,
 				A5001542 /* TerminalImageTransfer.swift in Sources */,
 				A5001543 /* TerminalSSHSessionDetector.swift in Sources */,
@@ -1189,6 +1196,7 @@
 				F3000000A1B2C3D4E5F60718 /* CJKIMEInputTests.swift in Sources */,
 				F4000000A1B2C3D4E5F60718 /* GhosttyConfigTests.swift in Sources */,
 				7F1D75B569A82A8A2EF81E7E /* GitDiffParserTests.swift in Sources */,
+				79AADF3A01857593C9BDAF9D /* GitDiffJumpEditorSettingsTests.swift in Sources */,
 				F4100000A1B2C3D4E5F60718 /* PortScannerTests.swift in Sources */,
 				F5000000A1B2C3D4E5F60718 /* SessionPersistenceTests.swift in Sources */,
 				FA100000A1B2C3D4E5F60718 /* BrowserImportMappingTests.swift in Sources */,
