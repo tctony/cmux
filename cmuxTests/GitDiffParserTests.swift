@@ -178,3 +178,93 @@ extension GitDiffParserTests {
         )
     }
 }
+
+extension GitDiffParserTests {
+    private static let renameDiff: [String] = [
+        "diff --git a/old/path.go b/new/path.go",
+        "similarity index 90%",
+        "rename from old/path.go",
+        "rename to new/path.go",
+        "--- a/old/path.go",
+        "+++ b/new/path.go",
+        "@@ -1,2 +1,2 @@",
+        " a",
+        "+b",        // row 8 → new/path.go:2
+    ]
+
+    func testRenameUsesPostRenamePath() {
+        XCTAssertEqual(
+            GitDiffJumpParser.resolve(lines: Self.renameDiff, clickRow: 8),
+            .fileLine(relativePath: "new/path.go", line: 2)
+        )
+    }
+
+    func testClickAboveScanLimitReturnsNil() {
+        // 6 000 noise rows then a one-file diff.
+        var lines = Array(repeating: "$ noise", count: 6_000)
+        lines.append("diff --git a/x.go b/x.go")
+        lines.append("--- a/x.go")
+        lines.append("+++ b/x.go")
+        lines.append("@@ -1,1 +1,2 @@")
+        lines.append(" a")
+        lines.append("+b")
+        XCTAssertEqual(
+            GitDiffJumpParser.resolve(lines: lines, clickRow: lines.count - 1),
+            .fileLine(relativePath: "x.go", line: 2)
+        )
+
+        // Now shrink scan to 100 rows; append trailing rows so the click sits
+        // below the diff — no `diff --git` / `@@` within the stride floor.
+        lines.append(contentsOf: Array(repeating: "$ noise", count: 200))
+        XCTAssertNil(
+            GitDiffJumpParser.resolve(
+                lines: lines,
+                clickRow: lines.count - 1,
+                maxScanRows: 100
+            )
+        )
+    }
+
+    func testMalformedHunkHeaderReturnsNil() {
+        let lines = [
+            "diff --git a/x.go b/x.go",
+            "--- a/x.go",
+            "+++ b/x.go",
+            "@@ this is not a hunk @@",
+            "+something",
+        ]
+        // The click is on a `+` row but no valid `@@` header above → falls
+        // through to the file-metadata branch, returns line 1.
+        XCTAssertEqual(
+            GitDiffJumpParser.resolve(lines: lines, clickRow: 4),
+            .fileLine(relativePath: "x.go", line: 1)
+        )
+    }
+
+    func testClickRowOutOfBoundsReturnsNil() {
+        let lines = ["diff --git a/x b/x"]
+        XCTAssertNil(GitDiffJumpParser.resolve(lines: lines, clickRow: 99))
+        XCTAssertNil(GitDiffJumpParser.resolve(lines: lines, clickRow: -1))
+    }
+
+    func testGitShowCommitMetadataAboveDiffIsIgnored() {
+        let lines = [
+            "commit deadbeef",
+            "Author: A B <a@b>",
+            "Date:   Wed Apr 30 12:00:00 2026 +0900",
+            "",
+            "    subject line",
+            "",
+            "diff --git a/x.go b/x.go",
+            "--- a/x.go",
+            "+++ b/x.go",
+            "@@ -1,1 +1,2 @@",
+            " a",
+            "+b",   // row 11 → x.go:2
+        ]
+        XCTAssertEqual(
+            GitDiffJumpParser.resolve(lines: lines, clickRow: 11),
+            .fileLine(relativePath: "x.go", line: 2)
+        )
+    }
+}
