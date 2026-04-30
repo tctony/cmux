@@ -79,3 +79,62 @@ extension GitDiffParserTests {
         )
     }
 }
+
+extension GitDiffParserTests {
+    private static let multiHunkOneFile: [String] = [
+        "diff --git a/main.py b/main.py",
+        "--- a/main.py",
+        "+++ b/main.py",
+        "@@ -10,2 +10,3 @@",
+        " a",
+        "+b",                  // row 5 → line 11
+        " c",
+        "@@ -50,2 +60,3 @@",
+        " x",
+        "+y",                  // row 9 → line 61
+        " z",
+    ]
+
+    func testSecondHunkUsesItsOwnHeader() {
+        XCTAssertEqual(
+            GitDiffJumpParser.resolve(lines: Self.multiHunkOneFile, clickRow: 9),
+            .fileLine(relativePath: "main.py", line: 61)
+        )
+    }
+
+    func testFirstHunkStillWorksWhenSecondHunkFollows() {
+        XCTAssertEqual(
+            GitDiffJumpParser.resolve(lines: Self.multiHunkOneFile, clickRow: 5),
+            .fileLine(relativePath: "main.py", line: 11)
+        )
+    }
+
+    private static let twoFileDiff: [String] = [
+        "diff --git a/a.txt b/a.txt",
+        "--- a/a.txt",
+        "+++ b/a.txt",
+        "@@ -1,1 +1,2 @@",
+        " a",
+        "+aa",                                // row 5 → a.txt:2
+        "diff --git a/b.txt b/b.txt",
+        "--- a/b.txt",
+        "+++ b/b.txt",
+        "@@ -100,1 +100,2 @@",
+        " b",
+        "+bb",                                // row 11 → b.txt:101
+    ]
+
+    func testClickInSecondFileResolvesToSecondFile() {
+        XCTAssertEqual(
+            GitDiffJumpParser.resolve(lines: Self.twoFileDiff, clickRow: 11),
+            .fileLine(relativePath: "b.txt", line: 101)
+        )
+    }
+
+    func testClickInFirstFileNotConfusedBySecondFileBelow() {
+        XCTAssertEqual(
+            GitDiffJumpParser.resolve(lines: Self.twoFileDiff, clickRow: 5),
+            .fileLine(relativePath: "a.txt", line: 2)
+        )
+    }
+}
