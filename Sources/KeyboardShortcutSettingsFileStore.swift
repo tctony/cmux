@@ -34,6 +34,9 @@ final class CmuxSettingsFileStore {
         "app.keepWorkspaceOpenWhenClosingLastSurface",
         "app.focusPaneOnFirstClick",
         "app.preferredEditor",
+        "app.gitDiffJumpPreset",
+        "app.gitDiffJumpCommand",
+        "app.gitDiffJumpArguments",
         "app.openMarkdownInCmuxViewer",
         "app.reorderOnNotification",
         "app.sendAnonymousTelemetry",
@@ -418,6 +421,15 @@ final class CmuxSettingsFileStore {
         }
         if let value = jsonString(section["preferredEditor"]) {
             snapshot.managedUserDefaults[PreferredEditorSettings.key] = .string(value)
+        }
+        if let value = jsonString(section["gitDiffJumpPreset"]) {
+            snapshot.managedUserDefaults[GitDiffJumpEditorSettings.presetKey] = .string(value)
+        }
+        if let value = jsonString(section["gitDiffJumpCommand"]) {
+            snapshot.managedUserDefaults[GitDiffJumpEditorSettings.commandKey] = .string(value)
+        }
+        if let value = jsonString(section["gitDiffJumpArguments"]) {
+            snapshot.managedUserDefaults[GitDiffJumpEditorSettings.argumentsKey] = .string(value)
         }
         if let value = jsonBool(section["openMarkdownInCmuxViewer"]) {
             snapshot.managedUserDefaults[CmdClickMarkdownRouteSettings.key] = .bool(value)
@@ -1225,6 +1237,9 @@ final class CmuxSettingsFileStore {
                     "keepWorkspaceOpenWhenClosingLastSurface": !LastSurfaceCloseShortcutSettings.defaultValue,
                     "focusPaneOnFirstClick": PaneFirstClickFocusSettings.defaultEnabled,
                     "preferredEditor": "",
+                    "gitDiffJumpPreset": "",
+                    "gitDiffJumpCommand": "",
+                    "gitDiffJumpArguments": "",
                     "openMarkdownInCmuxViewer": CmdClickMarkdownRouteSettings.defaultValue,
                     "reorderOnNotification": WorkspaceAutoReorderSettings.defaultValue,
                     "sendAnonymousTelemetry": TelemetrySettings.defaultSendAnonymousTelemetry,

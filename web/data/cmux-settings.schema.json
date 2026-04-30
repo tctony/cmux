@@ -93,6 +93,21 @@
           "default": "",
           "description": "Custom editor command used by cmux where applicable. Leave empty to use the default."
         },
+        "gitDiffJumpPreset": {
+          "type": "string",
+          "default": "",
+          "description": "Display name of the active Git Diff Jump preset (e.g. \"Visual Studio Code\", \"Custom\"). Presentation-only; the actual command and arguments come from gitDiffJumpCommand and gitDiffJumpArguments."
+        },
+        "gitDiffJumpCommand": {
+          "type": "string",
+          "default": "",
+          "description": "Command (executable name or absolute path) invoked when cmd+shift+clicking a git diff line in a terminal. Leave empty to disable Git Diff Jump."
+        },
+        "gitDiffJumpArguments": {
+          "type": "string",
+          "default": "",
+          "description": "Argument template for Git Diff Jump. Supports placeholders %file (absolute path), %line (1-based line), %urlfile (percent-encoded path). cmux does not auto-quote — wrap %file in double quotes if needed."
+        },
         "openMarkdownInCmuxViewer": {
           "type": "boolean",
           "default": false,
