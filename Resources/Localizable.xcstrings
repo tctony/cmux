@@ -52197,6 +52197,193 @@
         }
       }
     },
+    "settings.app.gitDiffJump": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Git Diff Jump"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Git Diff ジャンプ"
+          }
+        }
+      }
+    },
+    "settings.app.gitDiffJump.args.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arguments template, e.g. \"%file\":%line"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引数テンプレート (例: \"%file\":%line)"
+          }
+        }
+      }
+    },
+    "settings.app.gitDiffJump.command.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command (e.g. open, code, mvim)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コマンド (例: open, code, mvim)"
+          }
+        }
+      }
+    },
+    "settings.app.gitDiffJump.exitNonZero.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editor command exited with error"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エディタコマンドがエラー終了しました"
+          }
+        }
+      }
+    },
+    "settings.app.gitDiffJump.launchFailed.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editor command failed to launch"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エディタコマンドの起動に失敗しました"
+          }
+        }
+      }
+    },
+    "settings.app.gitDiffJump.notConfigured.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick a preset (or fill in a custom command) under Settings → App → Git Diff Jump to enable cmd+shift+click jumps from diffs."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定 → App → Git Diff ジャンプ でプリセット（またはカスタムコマンド）を選んでください。"
+          }
+        }
+      }
+    },
+    "settings.app.gitDiffJump.notConfigured.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Git Diff Jump is not configured"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Git Diff ジャンプが設定されていません"
+          }
+        }
+      }
+    },
+    "settings.app.gitDiffJump.openSettings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定を開く…"
+          }
+        }
+      }
+    },
+    "settings.app.gitDiffJump.preset": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preset"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プリセット"
+          }
+        }
+      }
+    },
+    "settings.app.gitDiffJump.preset.custom": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カスタム"
+          }
+        }
+      }
+    },
+    "settings.app.gitDiffJump.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cmd+Shift+Click on a git diff / git show line in the terminal opens that file at that line in your editor. Leave empty to disable. Placeholders: %file, %line, %urlfile."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ターミナルの git diff / git show 行を Cmd+Shift+クリックすると、そのファイルの該当行をエディタで開きます。空欄で無効化。プレースホルダ: %file, %line, %urlfile。"
+          }
+        }
+      }
+    },
     "settings.app.openSidebarPRLinks": {
       "extractionState": "manual",
       "localizations": {

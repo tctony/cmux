@@ -5196,6 +5196,9 @@ struct SettingsView: View {
     @AppStorage(TelemetrySettings.sendAnonymousTelemetryKey)
     private var sendAnonymousTelemetry = TelemetrySettings.defaultSendAnonymousTelemetry
     @AppStorage(PreferredEditorSettings.key) private var preferredEditorCommand = ""
+    @AppStorage(GitDiffJumpEditorSettings.presetKey) private var gitDiffJumpPreset = ""
+    @AppStorage(GitDiffJumpEditorSettings.commandKey) private var gitDiffJumpCommand = ""
+    @AppStorage(GitDiffJumpEditorSettings.argumentsKey) private var gitDiffJumpArguments = ""
     @AppStorage(CmdClickMarkdownRouteSettings.key) private var openMarkdownInCmuxViewer = CmdClickMarkdownRouteSettings.defaultValue
     @AppStorage("cmuxPortBase") private var cmuxPortBase = 9100
     @AppStorage("cmuxPortRange") private var cmuxPortRange = 10
@@ -5946,6 +5949,76 @@ struct SettingsView: View {
                             )
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 200)
+                        }
+
+                        SettingsCardDivider()
+
+                        SettingsCardRow(
+                            configurationReview: .json("app.gitDiffJumpCommand"),
+                            String(localized: "settings.app.gitDiffJump", defaultValue: "Git Diff Jump"),
+                            subtitle: String(
+                                localized: "settings.app.gitDiffJump.subtitle",
+                                defaultValue: "Cmd+Shift+Click on a git diff / git show line in the terminal opens that file at that line in your editor. Leave empty to disable. Placeholders: %file, %line, %urlfile."
+                            )
+                        ) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Picker(
+                                    String(localized: "settings.app.gitDiffJump.preset", defaultValue: "Preset"),
+                                    selection: Binding(
+                                        get: {
+                                            gitDiffJumpPreset.isEmpty
+                                                ? GitDiffJumpEditorSettings.customPresetName
+                                                : gitDiffJumpPreset
+                                        },
+                                        set: { newValue in
+                                            if newValue == GitDiffJumpEditorSettings.customPresetName {
+                                                gitDiffJumpPreset = GitDiffJumpEditorSettings.customPresetName
+                                            } else if let preset = GitDiffJumpEditorSettings.presets.first(where: { $0.name == newValue }) {
+                                                gitDiffJumpPreset = preset.name
+                                                gitDiffJumpCommand = preset.command
+                                                gitDiffJumpArguments = preset.arguments
+                                            }
+                                        }
+                                    )
+                                ) {
+                                    ForEach(GitDiffJumpEditorSettings.presets, id: \.name) { preset in
+                                        Text(preset.name).tag(preset.name)
+                                    }
+                                    Text(String(localized: "settings.app.gitDiffJump.preset.custom", defaultValue: "Custom"))
+                                        .tag(GitDiffJumpEditorSettings.customPresetName)
+                                }
+                                .frame(width: 240)
+                                TextField(
+                                    String(localized: "settings.app.gitDiffJump.command.placeholder", defaultValue: "Command (e.g. open, code, mvim)"),
+                                    text: Binding(
+                                        get: { gitDiffJumpCommand },
+                                        set: { newValue in
+                                            gitDiffJumpCommand = newValue
+                                            if gitDiffJumpPreset != GitDiffJumpEditorSettings.customPresetName {
+                                                gitDiffJumpPreset = GitDiffJumpEditorSettings.customPresetName
+                                            }
+                                        }
+                                    )
+                                )
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 240)
+                                .disabled(gitDiffJumpPreset != GitDiffJumpEditorSettings.customPresetName && !gitDiffJumpPreset.isEmpty)
+                                TextField(
+                                    String(localized: "settings.app.gitDiffJump.args.placeholder", defaultValue: "Arguments template, e.g. \"%file\":%line"),
+                                    text: Binding(
+                                        get: { gitDiffJumpArguments },
+                                        set: { newValue in
+                                            gitDiffJumpArguments = newValue
+                                            if gitDiffJumpPreset != GitDiffJumpEditorSettings.customPresetName {
+                                                gitDiffJumpPreset = GitDiffJumpEditorSettings.customPresetName
+                                            }
+                                        }
+                                    )
+                                )
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 240)
+                                .disabled(gitDiffJumpPreset != GitDiffJumpEditorSettings.customPresetName && !gitDiffJumpPreset.isEmpty)
+                            }
                         }
 
                         SettingsCardDivider()
@@ -7391,6 +7464,9 @@ struct SettingsView: View {
         geminiHooksEnabled = GeminiIntegrationSettings.defaultHooksEnabled
         sendAnonymousTelemetry = TelemetrySettings.defaultSendAnonymousTelemetry
         preferredEditorCommand = ""
+        gitDiffJumpPreset = ""
+        gitDiffJumpCommand = ""
+        gitDiffJumpArguments = ""
         openMarkdownInCmuxViewer = CmdClickMarkdownRouteSettings.defaultValue
         browserSearchEngine = BrowserSearchSettings.defaultSearchEngine.rawValue
         browserSearchSuggestionsEnabled = BrowserSearchSettings.defaultSearchSuggestionsEnabled
