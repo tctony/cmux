@@ -8038,7 +8038,12 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
         guard let surface = surface else { return }
         let point = convert(event.locationInWindow, from: nil)
         let consumed = ghostty_surface_mouse_button(surface, GHOSTTY_MOUSE_RELEASE, GHOSTTY_MOUSE_LEFT, modsFromEvent(event))
-        _ = handleCommandClickRelease(at: point, modifierFlags: event.modifierFlags, ghosttyConsumed: consumed)
+        let flags = event.modifierFlags
+        if flags.contains(.command) && flags.contains(.shift) {
+            _ = handleDiffJumpClickRelease(at: point)
+            return
+        }
+        _ = handleCommandClickRelease(at: point, modifierFlags: flags, ghosttyConsumed: consumed)
     }
 
     /// Attempt to open the word under the mouse cursor as a file path, resolved
@@ -8361,6 +8366,75 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
         )
     }
 
+    @MainActor
+    @discardableResult
+    private func handleDiffJumpClickRelease(at point: NSPoint) -> Bool {
+        guard let termSurface = terminalSurface,
+              let workspace = termSurface.owningWorkspace(),
+              !workspace.isRemoteTerminalSurface(termSurface.id),
+              let panel = workspace.terminalPanel(for: termSurface.id),
+              let surface else {
+            return false
+        }
+        guard let cwd = resolvedWordPathWorkingDirectory(workspace: workspace, terminalSurface: termSurface) else {
+            return false
+        }
+
+        // 1) Map click point → row index in a flattened (scrollback + viewport) buffer.
+        let size = ghostty_surface_size(surface)
+        let rows = max(Int(size.rows), 1)
+        let resolvedCellHeight = cellSize.height > 0 ? cellSize.height : CGFloat(size.cell_height_px)
+        guard resolvedCellHeight > 0 else { return false }
+
+        let scrollbackLimit = max(
+            rows + 1,
+            UserDefaults.standard.object(forKey: GitDiffJumpEditorSettings.scrollbackLimitKey) as? Int
+                ?? GitDiffJumpEditorSettings.defaultScrollbackLimit
+        )
+        let visibleText = TerminalController.shared.readTerminalTextForSnapshot(
+            terminalPanel: panel,
+            includeScrollback: true,
+            lineLimit: scrollbackLimit + rows
+        ) ?? ""
+        let allLines = visibleText.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+
+        let yInset = max(0, (bounds.height - (CGFloat(rows) * resolvedCellHeight)) / 2)
+        let yFromTop = bounds.height - point.y
+        let visibleRowFromTop = max(0, min(rows - 1, Int((yFromTop - yInset) / resolvedCellHeight)))
+        // The "visible" portion is the last `rows` lines of `allLines` (when
+        // includeScrollback=true). Map visibleRow → absolute row.
+        let visibleStart = max(0, allLines.count - rows)
+        let absoluteRow = visibleStart + visibleRowFromTop
+        guard absoluteRow >= 0, absoluteRow < allLines.count else { return false }
+
+        // 2) Parse.
+        guard let target = GitDiffJumpParser.resolve(
+            lines: allLines,
+            clickRow: absoluteRow,
+            maxScanRows: scrollbackLimit
+        ) else {
+#if DEBUG
+            cmuxDebugLog("git-diff-jump.miss row=\(absoluteRow) totalRows=\(allLines.count)")
+#endif
+            return false
+        }
+
+        // 3) Resolve to absolute path.
+        guard case let .fileLine(relativePath, line) = target,
+              let absolutePath = GitDiffJumpEditorSettings.resolveAbsolutePath(
+                  relativePath: relativePath, cwd: cwd
+              ) else {
+#if DEBUG
+            cmuxDebugLog("git-diff-jump.unresolved relpath=\(target) cwd=\(cwd)")
+#endif
+            return false
+        }
+
+        // 4) Open (or alert).
+        GitDiffJumpEditorSettings.openOrAlert(path: absolutePath, line: line)
+        return true
+    }
+
     @discardableResult
     private func handleCommandClickRelease(
         at point: NSPoint,
@@ -8618,6 +8692,11 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
             payload["rawToken"] = resolution.rawToken
         }
         return payload
+    }
+
+    @discardableResult
+    func debugSimulateDiffJumpClick(at point: NSPoint) -> Bool {
+        handleDiffJumpClickRelease(at: clampedDebugPoint(point))
     }
 #endif
 
@@ -9586,6 +9665,11 @@ final class GhosttySurfaceScrollView: NSView {
 
     func debugSimulateCommandClick(at point: NSPoint) -> [String: Any] {
         surfaceView.debugSimulateCommandClick(at: debugPointInSurface(point))
+    }
+
+    @discardableResult
+    func debugSimulateDiffJumpClick(at point: NSPoint) -> Bool {
+        surfaceView.debugSimulateDiffJumpClick(at: debugPointInSurface(point))
     }
 #endif
 
