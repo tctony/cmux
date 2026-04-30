@@ -84,3 +84,118 @@ extension GitDiffJumpEditorSettings {
         return nil
     }
 }
+
+extension GitDiffJumpEditorSettings {
+    /// Resolved (command, arguments) pair to actually invoke. nil if the
+    /// user has not configured a command (treat as "not configured").
+    struct ResolvedInvocation: Equatable {
+        let command: String
+        let arguments: String
+    }
+
+    /// Read the configured command/arguments. Treats whitespace-only as
+    /// empty. Preset name is presentation-only and not consulted here.
+    static func resolved(defaults: UserDefaults = .standard) -> ResolvedInvocation? {
+        let command = (defaults.string(forKey: commandKey) ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !command.isEmpty else { return nil }
+        let arguments = (defaults.string(forKey: argumentsKey) ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return ResolvedInvocation(command: command, arguments: arguments)
+    }
+
+    enum OpenOutcome: Equatable {
+        case launched
+        case notConfigured
+        case launchFailed(reason: String)
+    }
+
+    /// Run `<command> <substitutedArguments>` via `/bin/sh -c`. Surfaces
+    /// failures through `presentAlert` (a closure) and via a UI-test capture
+    /// env var when set. Never falls back to NSWorkspace.shared.open.
+    @MainActor
+    @discardableResult
+    static func openOrAlert(
+        path: String,
+        line: Int,
+        defaults: UserDefaults = .standard,
+        presentAlert: @escaping (String, String) -> Void = { title, message in
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = title
+            alert.informativeText = message
+            alert.addButton(withTitle: NSLocalizedString(
+                "settings.app.gitDiffJump.openSettings",
+                value: "Open Settings…", comment: ""
+            ))
+            alert.addButton(withTitle: NSLocalizedString(
+                "alert.cancel",
+                value: "Cancel", comment: ""
+            ))
+            if alert.runModal() == .alertFirstButtonReturn {
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            }
+        }
+    ) -> OpenOutcome {
+        if CmuxUITestCapture.appendLineIfConfigured(
+            envKey: "CMUX_UI_TEST_CAPTURE_DIFF_JUMP_PATH",
+            line: "\(path)\t\(line)"
+        ) {
+            return .launched
+        }
+
+        guard let invocation = resolved(defaults: defaults) else {
+            presentAlert(
+                NSLocalizedString("settings.app.gitDiffJump.notConfigured.title",
+                                  value: "Git Diff Jump is not configured", comment: ""),
+                NSLocalizedString("settings.app.gitDiffJump.notConfigured.body",
+                                  value: "Pick a preset (or fill in a custom command) under Settings → App → Git Diff Jump to enable cmd+shift+click jumps from diffs.",
+                                  comment: "")
+            )
+            return .notConfigured
+        }
+
+        let substituted = substitute(arguments: invocation.arguments, file: path, line: line)
+        let shellLine = "\(invocation.command) \(substituted)"
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", shellLine]
+        let stderrPipe = Pipe()
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = stderrPipe
+
+        do {
+            try process.run()
+        } catch {
+            let reason = "Failed to launch /bin/sh -c: \(error.localizedDescription)"
+            presentAlert(
+                NSLocalizedString("settings.app.gitDiffJump.launchFailed.title",
+                                  value: "Editor command failed to launch", comment: ""),
+                "\(invocation.command)\n\n\(reason)"
+            )
+            return .launchFailed(reason: reason)
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            process.waitUntilExit()
+            let status = process.terminationStatus
+            if status != 0 {
+                let stderrData = (try? stderrPipe.fileHandleForReading.readToEnd()) ?? Data()
+                let stderr = String(data: stderrData.prefix(1024), encoding: .utf8) ?? ""
+                let reason = "Exit \(status). stderr: \(stderr.isEmpty ? "(empty)" : stderr)"
+                #if DEBUG
+                cmuxDebugLog("git-diff-jump.failed cmd=\(shellLine) status=\(status) stderr=\(stderr)")
+                #endif
+                DispatchQueue.main.async {
+                    presentAlert(
+                        NSLocalizedString("settings.app.gitDiffJump.exitNonZero.title",
+                                          value: "Editor command exited with error", comment: ""),
+                        "\(invocation.command) exited with status \(status).\n\nstderr (first 1 KB):\n\(stderr.isEmpty ? "(empty)" : stderr)"
+                    )
+                }
+            }
+        }
+        return .launched
+    }
+}

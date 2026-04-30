@@ -151,3 +151,70 @@ final class GitDiffJumpEditorSettingsResolveTests: XCTestCase {
         XCTAssertEqual(resolved, target.path)
     }
 }
+
+@MainActor
+final class GitDiffJumpEditorSettingsOpenTests: XCTestCase {
+    private var defaults: UserDefaults!
+    private let suiteName = "cmux.git-diff-jump.tests"
+
+    override func setUp() async throws {
+        defaults = UserDefaults(suiteName: suiteName)
+        defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    func testResolvedReturnsNilWhenCommandEmpty() {
+        XCTAssertNil(GitDiffJumpEditorSettings.resolved(defaults: defaults))
+        defaults.set("   ", forKey: GitDiffJumpEditorSettings.commandKey)
+        XCTAssertNil(GitDiffJumpEditorSettings.resolved(defaults: defaults))
+    }
+
+    func testResolvedReturnsCommandAndArguments() {
+        defaults.set("zed", forKey: GitDiffJumpEditorSettings.commandKey)
+        defaults.set("\"%file\":%line", forKey: GitDiffJumpEditorSettings.argumentsKey)
+        let resolved = GitDiffJumpEditorSettings.resolved(defaults: defaults)
+        XCTAssertEqual(resolved?.command, "zed")
+        XCTAssertEqual(resolved?.arguments, "\"%file\":%line")
+    }
+
+    func testOpenOrAlertReturnsNotConfiguredWhenCommandEmpty() {
+        var capturedTitle: String?
+        var capturedBody: String?
+        let outcome = GitDiffJumpEditorSettings.openOrAlert(
+            path: "/x.go",
+            line: 1,
+            defaults: defaults,
+            presentAlert: { title, body in
+                capturedTitle = title
+                capturedBody = body
+            }
+        )
+        XCTAssertEqual(outcome, .notConfigured)
+        XCTAssertNotNil(capturedTitle)
+        XCTAssertNotNil(capturedBody)
+    }
+
+    func testOpenOrAlertCapturesViaUITestEnvAndSkipsLaunch() throws {
+        // Hardcoded env-var name from the implementation.
+        let envKey = "CMUX_UI_TEST_CAPTURE_DIFF_JUMP_PATH"
+        let captureURL = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("cmux-diff-jump-capture-\(UUID().uuidString).log")
+        setenv(envKey, captureURL.path, 1)
+        defer {
+            unsetenv(envKey)
+            try? FileManager.default.removeItem(at: captureURL)
+        }
+        defaults.set("/usr/bin/false", forKey: GitDiffJumpEditorSettings.commandKey)
+        defaults.set("\"%file\":%line", forKey: GitDiffJumpEditorSettings.argumentsKey)
+
+        let outcome = GitDiffJumpEditorSettings.openOrAlert(
+            path: "/repo/x.go",
+            line: 42,
+            defaults: defaults,
+            presentAlert: { _, _ in XCTFail("alert should not be presented in capture mode") }
+        )
+        XCTAssertEqual(outcome, .launched)
+
+        let captured = try String(contentsOf: captureURL, encoding: .utf8)
+        XCTAssertEqual(captured, "/repo/x.go\t42\n")
+    }
+}
